@@ -4,14 +4,26 @@ A command-line interface for managing shared expenses using the [Spliit](https:/
 
 ## Installation
 
+### Quick install (macOS/Linux)
+
 ```bash
-go install github.com/m1a1/spliit-cli@latest
+curl -sSL https://raw.githubusercontent.com/hewliyang/spliit-cli/main/install.sh | bash
 ```
 
-Or build from source:
+### Download binary
+
+Download the latest binary for your platform from [GitHub Releases](https://github.com/hewliyang/spliit-cli/releases/latest).
+
+### Go install
 
 ```bash
-git clone https://github.com/m1a1/spliit-cli.git
+go install github.com/hewliyang/spliit-cli@latest
+```
+
+### Build from source
+
+```bash
+git clone https://github.com/hewliyang/spliit-cli.git
 cd spliit-cli
 go build -o spliit
 ```

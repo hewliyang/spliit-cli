@@ -10,6 +10,12 @@ A command-line interface for managing shared expenses using the [Spliit](https:/
 curl -sSL https://raw.githubusercontent.com/hewliyang/spliit-cli/main/install.sh | bash
 ```
 
+### Quick install (Windows PowerShell)
+
+```powershell
+irm https://raw.githubusercontent.com/hewliyang/spliit-cli/main/install.ps1 | iex
+```
+
 ### Download binary
 
 Download the latest binary for your platform from [GitHub Releases](https://github.com/hewliyang/spliit-cli/releases/latest).

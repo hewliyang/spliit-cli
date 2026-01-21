@@ -39,7 +39,6 @@ Examples:
 
 		client := api.NewClient(GetGroupID())
 
-		// Get payer ID
 		payerID, err := client.GetParticipantID(payerName)
 		if err != nil {
 			return fmt.Errorf("failed to find participant: %w", err)
@@ -48,7 +47,6 @@ Examples:
 			return fmt.Errorf("participant %q not found", payerName)
 		}
 
-		// Get all participants for equal split
 		participants, err := client.GetParticipants()
 		if err != nil {
 			return fmt.Errorf("failed to get participants: %w", err)

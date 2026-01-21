@@ -35,7 +35,6 @@ Examples:
 		}
 		client := api.NewClient(GetGroupID())
 
-		// Calculate offset from page if provided
 		offset := expenseOffset
 		if expensePage > 0 {
 			offset = (expensePage - 1) * expenseLimit
@@ -46,7 +45,6 @@ Examples:
 			return fmt.Errorf("failed to get expenses: %w", err)
 		}
 
-		// Filter by date if specified
 		var filtered []api.Expense
 		for _, exp := range expenses {
 			include := true
@@ -66,7 +64,6 @@ Examples:
 				if err != nil {
 					return fmt.Errorf("invalid end date format: %w", err)
 				}
-				// Include the end date
 				end = end.Add(24 * time.Hour)
 				if exp.ExpenseDate.After(end) {
 					include = false
@@ -83,7 +80,6 @@ Examples:
 			return nil
 		}
 
-		// Show pagination info
 		pageNum := 1
 		if expensePage > 0 {
 			pageNum = expensePage

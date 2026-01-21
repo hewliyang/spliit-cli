@@ -28,7 +28,6 @@ func init() {
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 }
 
-// GetGroupID returns the group ID from flag
 func GetGroupID() string {
 	return groupID
 }

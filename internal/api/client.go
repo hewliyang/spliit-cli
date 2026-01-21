@@ -12,13 +12,11 @@ import (
 
 const baseURL = "https://spliit.app/api/trpc"
 
-// Client handles communication with the Spliit API
 type Client struct {
 	groupID    string
 	httpClient *http.Client
 }
 
-// NewClient creates a new Spliit API client
 func NewClient(groupID string) *Client {
 	return &Client{
 		groupID: groupID,
@@ -28,13 +26,11 @@ func NewClient(groupID string) *Client {
 	}
 }
 
-// Participant represents a group member
 type Participant struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 }
 
-// Group represents a Spliit group
 type Group struct {
 	ID           string        `json:"id"`
 	Name         string        `json:"name"`
@@ -43,39 +39,33 @@ type Group struct {
 	Participants []Participant `json:"participants"`
 }
 
-// Balance represents a participant's balance
 type Balance struct {
 	Paid    int64 `json:"paid"`
 	PaidFor int64 `json:"paidFor"`
 	Total   int64 `json:"total"`
 }
 
-// Reimbursement represents a suggested payment
 type Reimbursement struct {
 	From   string `json:"from"`
 	To     string `json:"to"`
 	Amount int64  `json:"amount"`
 }
 
-// BalanceResponse contains balances and reimbursements
 type BalanceResponse struct {
 	Balances       map[string]Balance `json:"balances"`
 	Reimbursements []Reimbursement    `json:"reimbursements"`
 }
 
-// Category represents an expense category
 type Category struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
 }
 
-// PaidForEntry represents who an expense is split between
 type PaidForEntry struct {
 	Participant Participant `json:"participant"`
 	Shares      int         `json:"shares"`
 }
 
-// Expense represents an expense entry
 type Expense struct {
 	ID          string       `json:"id"`
 	Title       string       `json:"title"`
@@ -86,18 +76,15 @@ type Expense struct {
 	Category    *Category    `json:"category"`
 }
 
-// PaidForInput is used when creating expenses
 type PaidForInput struct {
 	ParticipantID string
 	Shares        int
 }
 
-// ExpenseResult is returned after creating an expense
 type ExpenseResult struct {
 	ID string `json:"expenseId"`
 }
 
-// tRPCResult wraps a single tRPC response item
 type tRPCResult[T any] struct {
 	Result struct {
 		Data struct {
@@ -106,10 +93,8 @@ type tRPCResult[T any] struct {
 	} `json:"result"`
 }
 
-// tRPCBatchResponse is an array of results (batch=1)
 type tRPCBatchResponse[T any] []tRPCResult[T]
 
-// First returns the first result's payload or error if empty
 func (r tRPCBatchResponse[T]) First() (T, error) {
 	var zero T
 	if len(r) == 0 {
@@ -118,7 +103,6 @@ func (r tRPCBatchResponse[T]) First() (T, error) {
 	return r[0].Result.Data.JSON, nil
 }
 
-// unmarshalTRPC parses a tRPC batch response and returns the first result
 func unmarshalTRPC[T any](data []byte) (T, error) {
 	var response tRPCBatchResponse[T]
 	var zero T
@@ -128,7 +112,6 @@ func unmarshalTRPC[T any](data []byte) (T, error) {
 	return response.First()
 }
 
-// Response payload types for tRPC endpoints
 type groupResponse struct {
 	Group Group `json:"group"`
 }
@@ -214,7 +197,6 @@ func (c *Client) post(path string, body interface{}) ([]byte, error) {
 	return respBody, nil
 }
 
-// GetGroup retrieves group details
 func (c *Client) GetGroup() (*Group, error) {
 	params := map[string]interface{}{
 		"0": map[string]interface{}{"json": map[string]string{"groupId": c.groupID}},
@@ -234,7 +216,6 @@ func (c *Client) GetGroup() (*Group, error) {
 	return &result.Group, nil
 }
 
-// GetParticipants returns all participants in the group
 func (c *Client) GetParticipants() ([]Participant, error) {
 	group, err := c.GetGroup()
 	if err != nil {
@@ -243,7 +224,6 @@ func (c *Client) GetParticipants() ([]Participant, error) {
 	return group.Participants, nil
 }
 
-// GetParticipantID finds a participant ID by name
 func (c *Client) GetParticipantID(name string) (string, error) {
 	participants, err := c.GetParticipants()
 	if err != nil {
@@ -259,7 +239,6 @@ func (c *Client) GetParticipantID(name string) (string, error) {
 	return "", nil
 }
 
-// GetBalances retrieves balances and suggested reimbursements
 func (c *Client) GetBalances() (*BalanceResponse, error) {
 	params := map[string]interface{}{
 		"0": map[string]interface{}{"json": map[string]string{"groupId": c.groupID}},
@@ -278,7 +257,6 @@ func (c *Client) GetBalances() (*BalanceResponse, error) {
 	return &result, nil
 }
 
-// GetExpenses retrieves expenses for the group with pagination
 func (c *Client) GetExpenses(limit, offset int) ([]Expense, error) {
 	params := map[string]interface{}{
 		"0": map[string]interface{}{
@@ -303,7 +281,6 @@ func (c *Client) GetExpenses(limit, offset int) ([]Expense, error) {
 	return result.Expenses, nil
 }
 
-// AddExpense creates a new expense
 func (c *Client) AddExpense(title, paidBy string, paidFor []PaidForInput, amount int64, category int) (*ExpenseResult, error) {
 	paidForJSON := make([]map[string]interface{}, len(paidFor))
 	for i, pf := range paidFor {
@@ -347,7 +324,6 @@ func (c *Client) AddExpense(title, paidBy string, paidFor []PaidForInput, amount
 	return &result, nil
 }
 
-// DeleteExpense removes an expense
 func (c *Client) DeleteExpense(expenseID string) error {
 	body := map[string]interface{}{
 		"0": map[string]interface{}{
@@ -362,7 +338,6 @@ func (c *Client) DeleteExpense(expenseID string) error {
 	return err
 }
 
-// CreateGroup creates a new group
 func (c *Client) CreateGroup(name string, participants []string, currency, currencyCode string) (string, error) {
 	participantObjs := make([]map[string]string, len(participants))
 	for i, p := range participants {

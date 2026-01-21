@@ -27,7 +27,6 @@ var balancesCmd = &cobra.Command{
 			return fmt.Errorf("failed to get participants: %w", err)
 		}
 
-		// Create ID to name mapping
 		idToName := make(map[string]string)
 		for _, p := range participants {
 			idToName[p.ID] = p.Name

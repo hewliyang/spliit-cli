@@ -27,7 +27,6 @@ Examples:
 		name := args[0]
 		participantNames := strings.Split(args[1], ",")
 
-		// Trim whitespace from names
 		var cleaned []string
 		for _, n := range participantNames {
 			n = strings.TrimSpace(n)

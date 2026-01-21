@@ -1,4 +1,4 @@
-module github.com/m1a1/spliit-cli
+module github.com/hewliyang/spliit-cli
 
 go 1.21
 

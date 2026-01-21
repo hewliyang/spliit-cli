@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/m1a1/spliit-cli/internal/api"
+	"github.com/hewliyang/spliit-cli/internal/api"
 	"github.com/spf13/cobra"
 )
 

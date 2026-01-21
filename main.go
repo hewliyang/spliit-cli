@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/m1a1/spliit-cli/cmd"
+	"github.com/hewliyang/spliit-cli/cmd"
 )
 
 func main() {

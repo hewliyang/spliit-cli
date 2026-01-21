@@ -97,6 +97,50 @@ type ExpenseResult struct {
 	ID string `json:"expenseId"`
 }
 
+// tRPCResult wraps a single tRPC response item
+type tRPCResult[T any] struct {
+	Result struct {
+		Data struct {
+			JSON T `json:"json"`
+		} `json:"data"`
+	} `json:"result"`
+}
+
+// tRPCBatchResponse is an array of results (batch=1)
+type tRPCBatchResponse[T any] []tRPCResult[T]
+
+// First returns the first result's payload or error if empty
+func (r tRPCBatchResponse[T]) First() (T, error) {
+	var zero T
+	if len(r) == 0 {
+		return zero, fmt.Errorf("empty response")
+	}
+	return r[0].Result.Data.JSON, nil
+}
+
+// unmarshalTRPC parses a tRPC batch response and returns the first result
+func unmarshalTRPC[T any](data []byte) (T, error) {
+	var response tRPCBatchResponse[T]
+	var zero T
+	if err := json.Unmarshal(data, &response); err != nil {
+		return zero, err
+	}
+	return response.First()
+}
+
+// Response payload types for tRPC endpoints
+type groupResponse struct {
+	Group Group `json:"group"`
+}
+
+type expensesResponse struct {
+	Expenses []Expense `json:"expenses"`
+}
+
+type createGroupResponse struct {
+	GroupID string `json:"groupId"`
+}
+
 func (c *Client) get(path string, params map[string]interface{}) ([]byte, error) {
 	input, err := json.Marshal(params)
 	if err != nil {
@@ -182,25 +226,12 @@ func (c *Client) GetGroup() (*Group, error) {
 		return nil, err
 	}
 
-	var response []struct {
-		Result struct {
-			Data struct {
-				JSON struct {
-					Group Group `json:"group"`
-				} `json:"json"`
-			} `json:"data"`
-		} `json:"result"`
-	}
-
-	if err := json.Unmarshal(body, &response); err != nil {
+	result, err := unmarshalTRPC[groupResponse](body)
+	if err != nil {
 		return nil, err
 	}
 
-	if len(response) == 0 {
-		return nil, fmt.Errorf("empty response")
-	}
-
-	return &response[0].Result.Data.JSON.Group, nil
+	return &result.Group, nil
 }
 
 // GetParticipants returns all participants in the group
@@ -239,23 +270,12 @@ func (c *Client) GetBalances() (*BalanceResponse, error) {
 		return nil, err
 	}
 
-	var response []struct {
-		Result struct {
-			Data struct {
-				JSON BalanceResponse `json:"json"`
-			} `json:"data"`
-		} `json:"result"`
-	}
-
-	if err := json.Unmarshal(body, &response); err != nil {
+	result, err := unmarshalTRPC[BalanceResponse](body)
+	if err != nil {
 		return nil, err
 	}
 
-	if len(response) == 0 {
-		return nil, fmt.Errorf("empty response")
-	}
-
-	return &response[0].Result.Data.JSON, nil
+	return &result, nil
 }
 
 // GetExpenses retrieves expenses for the group with pagination
@@ -275,25 +295,12 @@ func (c *Client) GetExpenses(limit, offset int) ([]Expense, error) {
 		return nil, err
 	}
 
-	var response []struct {
-		Result struct {
-			Data struct {
-				JSON struct {
-					Expenses []Expense `json:"expenses"`
-				} `json:"json"`
-			} `json:"data"`
-		} `json:"result"`
-	}
-
-	if err := json.Unmarshal(body, &response); err != nil {
+	result, err := unmarshalTRPC[expensesResponse](body)
+	if err != nil {
 		return nil, err
 	}
 
-	if len(response) == 0 {
-		return nil, fmt.Errorf("empty response")
-	}
-
-	return response[0].Result.Data.JSON.Expenses, nil
+	return result.Expenses, nil
 }
 
 // AddExpense creates a new expense
@@ -332,23 +339,12 @@ func (c *Client) AddExpense(title, paidBy string, paidFor []PaidForInput, amount
 		return nil, err
 	}
 
-	var response []struct {
-		Result struct {
-			Data struct {
-				JSON ExpenseResult `json:"json"`
-			} `json:"data"`
-		} `json:"result"`
-	}
-
-	if err := json.Unmarshal(respBody, &response); err != nil {
+	result, err := unmarshalTRPC[ExpenseResult](respBody)
+	if err != nil {
 		return nil, err
 	}
 
-	if len(response) == 0 {
-		return &ExpenseResult{}, nil
-	}
-
-	return &response[0].Result.Data.JSON, nil
+	return &result, nil
 }
 
 // DeleteExpense removes an expense
@@ -392,23 +388,10 @@ func (c *Client) CreateGroup(name string, participants []string, currency, curre
 		return "", err
 	}
 
-	var response []struct {
-		Result struct {
-			Data struct {
-				JSON struct {
-					GroupID string `json:"groupId"`
-				} `json:"json"`
-			} `json:"data"`
-		} `json:"result"`
-	}
-
-	if err := json.Unmarshal(respBody, &response); err != nil {
+	result, err := unmarshalTRPC[createGroupResponse](respBody)
+	if err != nil {
 		return "", err
 	}
 
-	if len(response) == 0 {
-		return "", fmt.Errorf("empty response")
-	}
-
-	return response[0].Result.Data.JSON.GroupID, nil
+	return result.GroupID, nil
 }

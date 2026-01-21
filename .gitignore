@@ -2,6 +2,7 @@
 spliit
 spliit-cli
 *.exe
+dist/
 
 # Dependencies
 vendor/

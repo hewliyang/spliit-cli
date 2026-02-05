@@ -54,21 +54,21 @@ spliit -g <group-id> add-expense "Movie tickets" "Bob" 3500 --category 1
 
 ### Add Reimbursement (Settle a Debt)
 ```bash
-spliit -g <group-id> add-expense "Settle up" "Alice" 2500 --reimbursement
+spliit -g <group-id> add-expense "Settle up" "Bob" 2500 --reimbursement --to "Alice"
 ```
-Use the `--reimbursement` flag to mark an expense as a debt settlement. This is used when someone pays back money they owe.
+Use the `--reimbursement` flag with `--to` to record a debt settlement. This is used when someone pays back money they owe.
 
 **Example workflow:**
 1. Check balances: `spliit -g <group-id> balances`
-   - Output shows: "Alice → Bob: $25.00"
-2. Alice pays Bob $25 in cash/transfer
-3. Record it: `spliit -g <group-id> add-expense "Settle up" "Alice" 2500 --reimbursement`
+   - Output shows: "Bob → Alice: $25.00"
+2. Bob pays Alice $25 in cash/transfer
+3. Record it: `spliit -g <group-id> add-expense "Settle up" "Bob" 2500 --reimbursement --to "Alice"`
 4. Balances are now settled
 
-**Important**: The reimbursement is recorded as an expense where:
-- The **payer** is the person settling the debt (Alice in the example)
-- The **amount** is split equally among all participants by default
-- Spliit handles the balance recalculation automatically
+**Important**: 
+- The **payer** (positional arg) is the person paying back the debt
+- The **--to** flag specifies who receives the money
+- The `--to` flag is required when using `--reimbursement`
 
 ### Delete Expense
 ```bash

@@ -10,6 +10,7 @@ import (
 
 var expenseCategory int
 var isReimbursement bool
+var reimbursementTo string
 
 var addExpenseCmd = &cobra.Command{
 	Use:   "add-expense <title> <payer> <amount>",
@@ -23,12 +24,12 @@ Categories:
   2 = Food
   3 = Transport
 
-Use --reimbursement flag to mark the expense as a reimbursement (settling a debt).
+Use --reimbursement flag with --to to record a debt settlement.
 
 Examples:
   spliit add-expense "Groceries" "Alice" 5000
   spliit add-expense "Movie tickets" "Bob" 3500 --category 1
-  spliit add-expense "Settle up" "Alice" 2500 --reimbursement`,
+  spliit add-expense "Settle up" "Bob" 2500 --reimbursement --to "Alice"`,
 	Args: cobra.ExactArgs(3),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if GetGroupID() == "" {
@@ -51,16 +52,33 @@ Examples:
 			return fmt.Errorf("participant %q not found", payerName)
 		}
 
-		participants, err := client.GetParticipants()
-		if err != nil {
-			return fmt.Errorf("failed to get participants: %w", err)
-		}
+		var paidFor []api.PaidForInput
 
-		paidFor := make([]api.PaidForInput, len(participants))
-		for i, p := range participants {
-			paidFor[i] = api.PaidForInput{
-				ParticipantID: p.ID,
-				Shares:        1,
+		if isReimbursement {
+			if reimbursementTo == "" {
+				return fmt.Errorf("--to flag is required for reimbursements")
+			}
+			toID, err := client.GetParticipantID(reimbursementTo)
+			if err != nil {
+				return fmt.Errorf("failed to find recipient: %w", err)
+			}
+			if toID == "" {
+				return fmt.Errorf("recipient %q not found", reimbursementTo)
+			}
+			paidFor = []api.PaidForInput{
+				{ParticipantID: toID, Shares: 1},
+			}
+		} else {
+			participants, err := client.GetParticipants()
+			if err != nil {
+				return fmt.Errorf("failed to get participants: %w", err)
+			}
+			paidFor = make([]api.PaidForInput, len(participants))
+			for i, p := range participants {
+				paidFor[i] = api.PaidForInput{
+					ParticipantID: p.ID,
+					Shares:        1,
+				}
 			}
 		}
 
@@ -71,12 +89,15 @@ Examples:
 
 		if isReimbursement {
 			fmt.Println("✓ Reimbursement added successfully!")
+			fmt.Printf("\nTitle: %s\n", title)
+			fmt.Printf("Amount: $%.2f\n", float64(amount)/100)
+			fmt.Printf("From: %s → To: %s\n", payerName, reimbursementTo)
 		} else {
 			fmt.Println("✓ Expense added successfully!")
+			fmt.Printf("\nTitle: %s\n", title)
+			fmt.Printf("Amount: $%.2f\n", float64(amount)/100)
+			fmt.Printf("Paid by: %s\n", payerName)
 		}
-		fmt.Printf("\nTitle: %s\n", title)
-		fmt.Printf("Amount: $%.2f\n", float64(amount)/100)
-		fmt.Printf("Paid by: %s\n", payerName)
 
 		if expense.ID != "" {
 			fmt.Printf("\nView: https://spliit.app/groups/%s/expenses/%s/edit\n", GetGroupID(), expense.ID)
@@ -91,4 +112,5 @@ func init() {
 
 	addExpenseCmd.Flags().IntVar(&expenseCategory, "category", 0, "expense category (0=General, 1=Entertainment, 2=Food, 3=Transport)")
 	addExpenseCmd.Flags().BoolVar(&isReimbursement, "reimbursement", false, "mark expense as a reimbursement (settling a debt)")
+	addExpenseCmd.Flags().StringVar(&reimbursementTo, "to", "", "recipient of reimbursement (required with --reimbursement)")
 }

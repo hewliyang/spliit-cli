@@ -9,6 +9,7 @@ import (
 )
 
 var expenseCategory int
+var isReimbursement bool
 
 var addExpenseCmd = &cobra.Command{
 	Use:   "add-expense <title> <payer> <amount>",
@@ -22,9 +23,12 @@ Categories:
   2 = Food
   3 = Transport
 
+Use --reimbursement flag to mark the expense as a reimbursement (settling a debt).
+
 Examples:
   spliit add-expense "Groceries" "Alice" 5000
-  spliit add-expense "Movie tickets" "Bob" 3500 --category 1`,
+  spliit add-expense "Movie tickets" "Bob" 3500 --category 1
+  spliit add-expense "Settle up" "Alice" 2500 --reimbursement`,
 	Args: cobra.ExactArgs(3),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if GetGroupID() == "" {
@@ -60,12 +64,16 @@ Examples:
 			}
 		}
 
-		expense, err := client.AddExpense(title, payerID, paidFor, amount, expenseCategory)
+		expense, err := client.AddExpense(title, payerID, paidFor, amount, expenseCategory, isReimbursement)
 		if err != nil {
 			return fmt.Errorf("failed to add expense: %w", err)
 		}
 
-		fmt.Println("✓ Expense added successfully!")
+		if isReimbursement {
+			fmt.Println("✓ Reimbursement added successfully!")
+		} else {
+			fmt.Println("✓ Expense added successfully!")
+		}
 		fmt.Printf("\nTitle: %s\n", title)
 		fmt.Printf("Amount: $%.2f\n", float64(amount)/100)
 		fmt.Printf("Paid by: %s\n", payerName)
@@ -82,4 +90,5 @@ func init() {
 	rootCmd.AddCommand(addExpenseCmd)
 
 	addExpenseCmd.Flags().IntVar(&expenseCategory, "category", 0, "expense category (0=General, 1=Entertainment, 2=Food, 3=Transport)")
+	addExpenseCmd.Flags().BoolVar(&isReimbursement, "reimbursement", false, "mark expense as a reimbursement (settling a debt)")
 }

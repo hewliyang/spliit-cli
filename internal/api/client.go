@@ -281,7 +281,7 @@ func (c *Client) GetExpenses(limit, offset int) ([]Expense, error) {
 	return result.Expenses, nil
 }
 
-func (c *Client) AddExpense(title, paidBy string, paidFor []PaidForInput, amount int64, category int) (*ExpenseResult, error) {
+func (c *Client) AddExpense(title, paidBy string, paidFor []PaidForInput, amount int64, category int, isReimbursement bool) (*ExpenseResult, error) {
 	paidForJSON := make([]map[string]interface{}, len(paidFor))
 	for i, pf := range paidFor {
 		paidForJSON[i] = map[string]interface{}{
@@ -302,7 +302,7 @@ func (c *Client) AddExpense(title, paidBy string, paidFor []PaidForInput, amount
 					"category":                   category,
 					"paidBy":                     paidBy,
 					"paidFor":                    paidForJSON,
-					"isReimbursement":            false,
+					"isReimbursement":            isReimbursement,
 					"saveDefaultSplittingOptions": false,
 					"notes":                      "",
 					"documents":                  []interface{}{},
